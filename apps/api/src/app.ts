@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import { randomUUID } from 'node:crypto';
 import { healthRouter } from './modules/health/health.routes.js';
 import { errorHandler } from './middleware/error-handler.js';
+import type { ApiErrorResponse } from '../../../packages/contracts/api.js';
 
 export function createApp() {
   const app = express();
@@ -17,9 +18,13 @@ export function createApp() {
   app.use('/api/health', healthRouter);
   app.use('/health', healthRouter);
   app.use((_req, res) => {
-    res.status(404).json({ error: {
-      code: 'NOT_FOUND', message: 'Kaynak bulunamadı.', requestId: res.locals['requestId']
-    } });
+    res.status(404).json({
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Kaynak bulunamadı.',
+        requestId: res.locals['requestId'],
+      },
+    } satisfies ApiErrorResponse);
   });
   app.use(errorHandler);
   return app;

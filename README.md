@@ -7,7 +7,7 @@
 ## Teknolojiler ve yapı
 
 - Angular 20 standalone, TypeScript strict, SCSS, HttpClient.
-- Node.js 22, Express 5, Helmet, dotenv.
+- Node.js 22 veya 24 LTS, Express 5, Helmet, dotenv.
 - Prisma 6, SQLite; yalnızca teknik AppMetadata modeli.
 - Vitest, Supertest; ESLint ve Prettier yapılandırmaları.
 - npm workspaces ile apps/api ve apps/web.
@@ -32,7 +32,7 @@ packages/contracts/
 
 ## Kurulum
 
-Node.js 22.12+ (22.x) ve npm 10+ kullanın. Komutları depo kökünde çalıştırın.
+Node.js 22.12+ (22.x) veya 24.x ve npm 10+ kullanın. `.nvmrc` varsayılan olarak 22 seçer. Komutları depo kökünde çalıştırın.
 
 ```powershell
 npm install
@@ -85,9 +85,14 @@ API çıktısı apps/api/dist; frontend apps/web/dist/nabiz/browser. HTTPS rever
 
 ## Doğrulama durumu (8 Kasım 2026)
 
-- Node 22.23.4 ile API derlemesi ve frontend production build başarılı.
-- Prisma validate ve client generate başarılı.
-- Başlangıç migration ayrı migration-check.db üzerinde başarılı; mevcut veritabanı değiştirilmedi.
-- Bu oturumda npm registry DNS erişimi ENOTFOUND veriyor. ESLint/Prettier paketleri yüklenemedi; lint ve format doğrulaması tamamlanamadı. package-lock.json bu yeni araçları henüz içermez: ağ erişimi olan terminalde npm install çalıştırıp güncel kilit dosyasını kaydedin. Ardından temiz kurulumlarda npm ci kullanın.
-- Supertest HTTP testleri oturumun loopback bağlantı kısıtı nedeniyle EACCES veriyor; başarılı sayılmadı. Kullanıcı terminalinde npm test ve canlı health kontrolü tekrar çalıştırılmalıdır.
-- PR taslak tutulmalı; tüm kontroller geçmeden issue kapatılmamalıdır.
+Kullanıcının kendi bilgisayarında doğruladığı sonuçlar:
+
+- `npm run build`: başarılı.
+- `npm run lint`: başarılı.
+- `npm run format:check`: başarılı.
+- `npm test`: 6 backend ve 2 frontend testi başarılı.
+- `/api/health`: başarılı HTTP yanıtı.
+
+Agent oturumunda ayrıca TypeScript kontrolü, production build, Prisma doğrulaması ve ayrı SQLite dosyasına başlangıç migration uygulaması başarılı oldu. Agent oturumundaki DNS ve loopback erişim kısıtları, kullanıcının yerel ortamda tamamladığı kontrollerden ayrı değerlendirilmiştir.
+
+Gerçek `.env`, SQLite veritabanları ve `node_modules` sürüm kontrolüne dahil edilmez. OAuth, tarama motoru ve raporlama sonraki issue'ların kapsamındadır.
