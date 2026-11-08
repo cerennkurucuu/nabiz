@@ -4,7 +4,8 @@ import { environment } from '../../../environments/environment';
 import type { ApiResponse, Health } from './api.models';
 
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
-  providedIn: 'root', factory: () => environment.apiBaseUrl
+  providedIn: 'root',
+  factory: () => environment.apiBaseUrl,
 });
 
 @Injectable({ providedIn: 'root' })

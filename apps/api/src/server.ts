@@ -13,7 +13,9 @@ let stopping = false;
 function shutdown() {
   if (stopping) return;
   stopping = true;
-  server.close(() => { process.exitCode = 0; });
+  server.close(() => {
+    process.exitCode = 0;
+  });
   setTimeout(() => process.exit(1), 10_000).unref();
 }
 process.on('SIGINT', shutdown);
