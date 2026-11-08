@@ -1,0 +1,17 @@
+{
+  "name": "nabiz",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "node": ">=22.12.0 <23", "npm": ">=10" },
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"npm run dev -w @nabiz/api\" \"npm run dev -w @nabiz/web\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "typecheck": "npm run typecheck -w @nabiz/api",
+    "prisma:generate": "npm run prisma:generate -w @nabiz/api",
+    "prisma:validate": "npm run prisma:validate -w @nabiz/api",
+    "db:push": "npm run db:push -w @nabiz/api"
+  },
+  "devDependencies": { "concurrently": "^9.2.0" }
+}
