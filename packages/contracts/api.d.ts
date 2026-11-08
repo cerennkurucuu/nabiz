@@ -8,3 +8,15 @@ export interface Health {
   status: 'ok';
   service: string;
 }
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface AuthSession {
+  configured: boolean;
+  user: AuthUser | null;
+  csrfToken: string | null;
+}

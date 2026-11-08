@@ -1,9 +1,73 @@
-:host { display: grid; min-height: 100dvh; place-items: center; }
-main { width: min(42rem, 100%); padding: clamp(1.5rem, 5vw, 4rem); }
-.eyebrow { color: #53616b; font-size: .85rem; }
-h1 { margin: 1rem 0; font-size: clamp(3rem, 12vw, 5rem); letter-spacing: -.06em; }
-h1 span { color: #16735c; }
-.slogan { font-size: 1.5rem; }
-.description { line-height: 1.7; color: #43515b; }
-.status { margin-top: 2rem; padding: 1rem; border-left: 3px solid #16735c; background: #eaf2ef; }
-.note { margin-top: 2rem; font-size: .85rem; color: #53616b; }
+:host {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+}
+main {
+  width: min(42rem, 100%);
+  padding: clamp(1.5rem, 5vw, 4rem);
+}
+.eyebrow {
+  color: #53616b;
+  font-size: 0.85rem;
+}
+h1 {
+  margin: 1rem 0;
+  font-size: clamp(3rem, 12vw, 5rem);
+  letter-spacing: -0.06em;
+}
+h1 span {
+  color: #16735c;
+}
+.slogan {
+  font-size: 1.5rem;
+}
+.description {
+  line-height: 1.7;
+  color: #43515b;
+}
+.status {
+  margin-top: 2rem;
+  padding: 1rem;
+  border-left: 3px solid #16735c;
+  background: #eaf2ef;
+}
+.note {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: #53616b;
+}
+
+.account {
+  margin-top: 1.5rem;
+}
+.account-email {
+  color: #53616b;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.login,
+button {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  border: 1px solid #16735c;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #155b49;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.login:focus-visible,
+button:focus-visible {
+  outline: 3px solid #16735c;
+  outline-offset: 3px;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.auth-error {
+  color: #a02222;
+  line-height: 1.6;
+}

@@ -12,3 +12,31 @@ model AppMetadata {
   key   String @id
   value String
 }
+
+model User {
+  id        String    @id @default(cuid())
+  googleSub String    @unique
+  email     String
+  name      String
+  createdAt DateTime  @default(now())
+  sessions  Session[]
+}
+
+model Session {
+  tokenHash String   @id
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model OAuthAttempt {
+  stateHash String   @id
+  nonce     String
+  verifier  String
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}

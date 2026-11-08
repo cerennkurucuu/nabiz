@@ -2,7 +2,37 @@
   <p class="eyebrow">Web kalite platformu</p>
   <h1>Nabız<span aria-hidden="true">.</span></h1>
   <p class="slogan">Web sitenin nabzını tut.</p>
-  <p class="description">Teknik kalite, UI tutarlılığı ve temel erişilebilirlik analizi için başlangıç altyapısı.</p>
+  <p class="description">
+    Teknik kalite, UI tutarlılığı ve temel erişilebilirlik analizi için
+    başlangıç altyapısı.
+  </p>
   <p class="status" role="status">{{ status() }}</p>
-  <p class="note">Kurulum aşaması · Tarama özellikleri henüz kullanıma açık değil.</p>
+  <section
+    class="account"
+    aria-label="Kullanıcı hesabı"
+    [attr.aria-busy]="authLoading()"
+  >
+    @if (authLoading()) {
+      <p role="status">Oturum kontrol ediliyor…</p>
+    } @else if (auth.session()?.user; as user) {
+      <p>Merhaba, {{ user.name }}</p>
+      <p class="account-email">{{ user.email }}</p>
+      <button type="button" (click)="logout()" [disabled]="signingOut()">
+        {{ signingOut() ? 'Çıkış yapılıyor…' : 'Oturumu kapat' }}
+      </button>
+    } @else if (auth.session()?.configured) {
+      <a class="login" [href]="auth.loginUrl">Google ile giriş yap</a>
+      <p class="account-email">
+        Kayıtlarına yalnızca kendi hesabınla erişebilirsin.
+      </p>
+    } @else if (auth.session()) {
+      <p>Google ile giriş henüz kullanıma açılmadı.</p>
+    }
+    @if (authError()) {
+      <p class="auth-error" role="alert">{{ authError() }}</p>
+    }
+  </section>
+  <p class="note">
+    Kurulum aşaması · Tarama özellikleri henüz kullanıma açık değil.
+  </p>
 </main>

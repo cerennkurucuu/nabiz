@@ -2,96 +2,115 @@
 
 **Web sitenin nabzını tut.**
 
-Web sitelerinin teknik kalite, UI tutarlılığı ve temel UX/erişilebilirlik analizleri için başlangıç mimarisi. Bu çalışma yalnızca [NABIZ-01 (#5)](https://github.com/cerennkurucuu/nabiz/issues/5) kapsamındadır.
+[NABIZ-01 (#5)](https://github.com/cerennkurucuu/nabiz/issues/5) başlangıç mimarisi. OAuth, tarama ve raporlama bu kapsamda uygulanmaz.
 
-## Gereksinimler
+## Teknolojiler ve yapı
 
-- Node.js 22.12 veya üzeri 22.x sürümü (`.nvmrc`: 22)
-- npm 10 veya üzeri
-- Yerel SQLite dosyasını yazabilecek bir çalışma dizini
+- Angular 20 standalone, TypeScript strict, SCSS, HttpClient.
+- Node.js 22 veya 24 LTS, Express 5, Helmet, dotenv.
+- Prisma 6, SQLite; yalnızca teknik AppMetadata modeli.
+- Vitest, Supertest; ESLint ve Prettier yapılandırmaları.
+- npm workspaces ile apps/api ve apps/web.
 
-## Kurulum ve geliştirme
+```text
+apps/api/
+  prisma/schema.prisma
+  prisma/migrations/       Sürüm kontrollü başlangıç migration
+  src/config/              Ortam değişkeni doğrulama
+  src/middleware/          Tutarlı hata yanıtları
+  src/modules/health/      /api/health ve /health
+  src/app.ts               HTTP uygulaması
+  src/server.ts            Sunucu ve kontrollü kapanış
+  tests/                   API ve ortam testleri
+apps/web/
+  src/app/core/api/        API servisi, adresi ve tip aktarımları
+  src/environments/        Development ve production build ayarları
+  tests/                   API servisi testleri
+packages/contracts/
+  api.d.ts                 Frontend/backend ortak TypeScript sözleşmeleri
+```
 
-Komutları depo kökünde çalıştırın:
+## Kurulum
+
+Node.js 22.12+ (22.x) veya 24.x ve npm 10+ kullanın. `.nvmrc` varsayılan olarak 22 seçer. Komutları depo kökünde çalıştırın.
 
 ```powershell
 npm install
 Copy-Item apps/api/.env.example apps/api/.env
 npm run prisma:validate
 npm run prisma:generate
-npm run db:push
+npm run db:deploy
 npm run dev
 ```
 
-Frontend: http://127.0.0.1:4300. Backend: http://127.0.0.1:3100/api/health.
-Frontend geliştirme sunucusu `/api/**` isteklerini backend'e yönlendirir. Backend portunu değiştirirseniz `apps/web/proxy.conf.json` hedefini de değiştirin.
+Frontend: http://127.0.0.1:4300 ; API: http://127.0.0.1:3100/api/health.
 
-`db:push` yalnızca yerel başlangıç veritabanını oluşturur; production migration stratejisi değildir. `AppMetadata`, Prisma'nın model içeren geçerli bir başlangıç şeması ve client üretebilmesi için tutulan tek teknik modeldir. Kullanıcı, tarama ve rapor modelleri henüz yoktur. SQLite yolu Prisma şemasının bulunduğu dizine göredir. Veritabanı dosyaları Git tarafından dışlanır.
+Migration komutu temiz bir SQLite dosyası oluşturur. Önceden db:push ile oluşturulmuş veritabanınız varsa silmeyin: tablo yapısının başlangıç migration ile eşleştiğini doğruladıktan sonra apps/api içinde `npx prisma migrate resolve --applied 20261108000000_init` ile başlangıç kaydını işaretleyin. Yeni şema değişikliklerinde `npm run db:migrate -- --name degisiklik_adi` yerine doğrudan `npm run db:migrate -w @nabiz/api -- --name degisiklik_adi` kullanın.
 
-Başarılı kurulumdan sonra oluşan `package-lock.json` sürüm kontrolüne eklenmelidir. Sonraki temiz kurulumlarda `npm ci` kullanın. Ağ erişimi olmadan kilit dosyası üretilemediği için şu an tekrarlanabilir bağımlılık çözümlemesi henüz doğrulanmamıştır.
+## Yapılandırma ve güvenlik
 
-## Proje yapısı
+API, apps/api/.env dosyasını kaynakta ve derlenmiş çalıştırmada aynı konumdan okur. İşletim sistemi değişkenleri önceliklidir. PORT, HOST, NODE_ENV ve zorunlu SQLite DATABASE_URL başlangıçta doğrulanır. Eksik DATABASE_URL anlaşılır hatayla başlatmayı durdurur. Gerçek .env, veritabanları ve üretilen dosyalar Git tarafından dışlanır.
 
-```text
-apps/
-  api/
-    prisma/schema.prisma
-    src/
-      config/             Ortam doğrulaması
-      middleware/         Ortak API hata yönetimi
-      modules/health/     Health rotası
-      app.ts              HTTP uygulaması; testte port açmaz
-      server.ts           Başlatma ve kontrollü kapanış
-    tests/                API ve yapılandırma testleri
-  web/
-    src/
-      app/core/api/       API adresi, servis ve yanıt tipleri
-      app/                Sade başlangıç ekranı
-      environments/       Herkese açık build ayarları
-    tests/                API servis testleri
-```
+Angular environment dosyaları herkese açık build ayarlarıdır; gizli anahtar içermez. Varsayılan API adresi /api. Geliştirmede proxy.conf.json API isteklerini 3100 portuna iletir; port değişirse proxy hedefini de güncelleyin. Production'da statik frontend ve API aynı origin üzerinden reverse proxy ile sunulmalıdır; geliştirme proxy'si production sunucusu değildir.
 
-Backend: Express 5, TypeScript strict, Helmet, dotenv. Frontend: Angular 20 standalone, zoneless change detection, SCSS, HttpClient. Veri altyapısı: Prisma 6 ve SQLite. Testler: Vitest ve Supertest. npm workspaces ortak paket yönetimini sağlar.
+Hata sözleşmesi: { error: { code, message, requestId } }. Stack, ham hata ve gizli değerler istemciye iletilmez. Health yalnızca HTTP sürecini kontrol eder, veritabanı readiness kontrolü değildir.
 
-## Ortam yönetimi
-
-API `.env` dosyasını geliştirme ve derlenmiş çalıştırmada `apps/api/.env` konumundan okur. İşletim sistemindeki değişkenler dosyanın önüne geçer. `PORT`, `HOST`, `NODE_ENV` ve SQLite `DATABASE_URL` başlangıçta doğrulanır. Gerçek `.env` dosyaları sürüm kontrolüne eklenmez.
-
-Angular `environment.ts` production; `environment.development.ts` geliştirme ayarıdır. Bunlar build sırasında pakete giren **herkese açık** değerlerdir; çalışma anında Node ortam değişkenlerini okumaz. API varsayılan olarak aynı origin üzerindeki `/api` yolundadır. Başka bir adres gerekiyorsa ilgili environment dosyasını build öncesinde düzenleyin. Frontend'e hiçbir gizli anahtar koymayın.
-
-## Doğrulama
+## Komutlar
 
 ```powershell
 npm run build
 npm run typecheck
 npm run prisma:validate
+npm run lint
+npm run format:check
 npm test
 Invoke-RestMethod http://127.0.0.1:3100/api/health
 ```
 
-Son komut için API çalışıyor olmalıdır. Beklenen yanıt:
+Health yanıtı: { "data": { "status": "ok", "service": "nabiz-api" } }.
 
-```json
-{ "data": { "status": "ok", "service": "nabiz-api" } }
-```
+`npm run format` dosyaları biçimlendirir. Testler health, 404, bozuk JSON, gövde sınırı, eksik/geçersiz ortam değişkenleri ve frontend API adresi/hata iletimini kapsar.
 
-Health endpoint'i yalnızca HTTP sürecinin çalıştığını bildirir; veritabanı readiness kontrolü değildir. Testler health yanıtını, 404/bozuk JSON/büyük gövde hata sözleşmesini, ortam doğrulamasını ve frontend API adresi/hata iletimini kapsar. Hata yanıtı `{ "error": { "code", "message", "requestId" } }` biçimindedir; stack ve gizli bilgiler istemciye gönderilmez.
-
-## Production derlemesi
+## Production
 
 ```powershell
 npm run prisma:generate
+npm run db:deploy
 npm run build
 $env:NODE_ENV = 'production'
 npm start -w @nabiz/api
 ```
 
-API çıktısı `apps/api/dist`; statik frontend çıktısı `apps/web/dist/nabiz/browser` dizinindedir. Frontend'i statik sunucuda sunun; HTTPS reverse proxy üzerinden `/api` isteklerini API'ye iletin. API varsayılan olarak loopback arayüzünde dinler. Konteyner gibi ortamlarda gerekiyorsa `HOST=0.0.0.0` tanımlayın. SQLite dosyasını kalıcı ve yazılabilir bir diskte tutun; dışarıya sunmayın. Geliştirme proxy'si production sunucusu değildir. CORS bilerek açılmamıştır; varsayılan dağıtım aynı origin kullanır.
+API çıktısı apps/api/dist; frontend apps/web/dist/nabiz/browser. HTTPS reverse proxy ile /api yolunu backend'e yönlendirin. HOST varsayılan loopback; konteynerde gerekiyorsa 0.0.0.0 kullanın. SQLite kalıcı, yazılabilir diskte tutulmalıdır.
 
-## Sınırlar
+## Doğrulama durumu (8 Kasım 2026)
 
-Google OAuth, kullanıcı izolasyonu, URL kabulü, Playwright worker'ları, SSRF koruması, kota, analiz kuralları, raporlar ve geçmiş bu Issue kapsamında uygulanmaz. Playwright henüz kurulmaz. Modüller sonraki Issue'larda `api/src/modules` ve frontend özellik dizinleri altında eklenecektir. Tarama kodu eklendiğinde ayrı worker izolasyonu ve kaynak sınırları gerekecektir; mevcut HTTP süreci güvenli tarayıcı izolasyonu sağlamaz. Herkese açık tarama yayını güvenlik kontrolleri doğrulanana kadar yapılmamalıdır.
+Kullanıcının kendi bilgisayarında doğruladığı sonuçlar:
 
-## Bu ortamda doğrulama durumu
+- `npm run build`: başarılı.
+- `npm run lint`: başarılı.
+- `npm run format:check`: başarılı.
+- `npm test`: 6 backend ve 2 frontend testi başarılı.
+- `/api/health`: başarılı HTTP yanıtı.
 
-Kurulum ortamında Node 18.19.1 mevcut, gereken Node 22 mevcut değil. npm registry ve GitHub DNS erişimi başarısız. Bağımlılıklar yüklenemedi; build, otomatik testler, Prisma doğrulaması ve canlı health testi henüz doğrulanamadı. `.git` yazma kısıtı nedeniyle feature branch, commit ve PR oluşturulamadı. Dosyalar yerelde hazırlanmıştır; başarılı doğrulama raporu veya tamamlanmış Issue olarak değerlendirilmemelidir.
+Agent oturumunda ayrıca TypeScript kontrolü, production build, Prisma doğrulaması ve ayrı SQLite dosyasına başlangıç migration uygulaması başarılı oldu. Agent oturumundaki DNS ve loopback erişim kısıtları, kullanıcının yerel ortamda tamamladığı kontrollerden ayrı değerlendirilmiştir.
+
+Gerçek `.env`, SQLite veritabanları ve `node_modules` sürüm kontrolüne dahil edilmez. OAuth, tarama motoru ve raporlama sonraki issue'ların kapsamındadır.
+
+### Merge sonrası yeniden kontrol
+
+`179438e` merge commit'inde eski sürüme dönen npm komutları, ortak API sözleşmesi kullanımı ve `/health` rotası NABIZ-01 kapsamı içinde tamamlandı. Mevcut migration ve stash korundu. Düzeltme güncel `main` commit'i temel alınarak hazırlanır.
+
+Bu yeniden kontrolde bağımlılık kurulumu ve `npm ls --depth=0`, ESLint, Prettier, TypeScript, frontend/backend production build, Prisma doğrulaması ve ayrı SQLite dosyasına migration başarılı oldu. API süreci 3102 portunda başladı; gerçek HTTP isteği oturumun soket erişim kısıtı nedeniyle engellendi. Önceki kullanıcı doğrulaması bu yeniden kontrolün HTTP sonucu yerine kullanılmaz.
+
+Yeniden çalıştırılan testlerde 2 frontend testi ve 1 backend ortam testi geçti; 5 Supertest HTTP testi `connect EACCES` nedeniyle başarısız oldu. Düzeltmenin HTTP testleri erişim kısıtı olmayan ortamda yeniden çalıştırılmalıdır.
+
+## Main çalışma durumu — 8 Kasım 2026
+
+Çalışma ağacında NABIZ-01 düzeltmelerine ek olarak NABIZ-02 (#6) Google giriş altyapısı bulunur. Önceki bölümlerdeki OAuth kapsam dışı ifadeleri yalnızca NABIZ-01 için geçerlidir.
+
+Google girişini açmak için apps/api/.env içinde GOOGLE_CLIENT_ID ve GOOGLE_CLIENT_SECRET birlikte tanımlanmalıdır. APP_ORIGIN tarayıcıdaki frontend origin adresidir; GOOGLE_REDIRECT_URI aynı origin üzerinde /api/auth/google/callback olmalı ve Google Console'da birebir kaydedilmelidir. Örnek değerler apps/api/.env.example içindedir. Production HTTPS gerektirir. Yeni kullanıcı ve oturum tabloları için npm run db:deploy çalıştırılır.
+
+Eklenen uçlar: GET /api/auth/session, GET /api/auth/google, GET /api/auth/google/callback, GET /api/auth/me ve POST /api/auth/logout. Logout, aynı origin ve oturumdan alınan X-CSRF-Token başlığını gerektirir. Kullanıcı izolasyonu yardımcısı mevcut; tarama veri modelleri ve uçları henüz yoktur.
+
+Bu oturumda TypeScript, lint ve frontend/backend production build başarılıdır. İki frontend testi ve backend ortam testi geçti; beş HTTP testi connect EACCES nedeniyle tamamlanamadı. Prisma generate, Windows motor dosyası yeniden adlandırılırken EPERM ile engellendi. Gerçek Google hesabıyla uçtan uca giriş ve auth güvenlik testleri henüz doğrulanmadığından #6 açık kalır. Bu kayıt tam doğrulama veya tamamlanma beyanı değildir.
