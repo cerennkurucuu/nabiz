@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.angular/
+coverage/
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.log
+apps/api/generated/
+out-tsc/

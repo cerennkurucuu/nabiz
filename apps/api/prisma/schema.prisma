@@ -1,0 +1,14 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Bootstrap model only. Domain models belong to subsequent issues.
+model AppMetadata {
+  key   String @id
+  value String
+}
