@@ -1,0 +1,166 @@
+<section class="scans" aria-label="Tarama paneli" [attr.data-view]="view()">
+  @if (loading()) {
+    <p class="nabiz-meta" role="status">Yükleniyor…</p>
+  } @else if (scanningDisabled()) {
+    <div class="card closed">
+      <h2 class="nabiz-title">Tarama kapalı</h2>
+      <p class="nabiz-body">
+        Bu ortamda açık internet taraması kapalı. Yönetici taramaları
+        etkinleştirdiğinde geçmiş ve raporlar burada kullanılabilir olacak.
+      </p>
+    </div>
+  } @else {
+    @if (error()) {
+      <p class="nabiz-body error" role="alert">{{ error() }}</p>
+    }
+    @if (notice()) {
+      <p
+        class="nabiz-body notice"
+        [attr.data-tone]="noticeTone()"
+        role="status"
+      >
+        {{ notice() }}
+      </p>
+    }
+
+    @switch (view()) {
+      @case ('panel') {
+        <section class="panel-grid" aria-label="Genel bakış">
+          <article class="card">
+            <p class="nabiz-eyebrow">Son tarama</p>
+            @if (latestJob(); as job) {
+              <h2 class="nabiz-title">{{ job.urls.join(', ') }}</h2>
+              <p class="nabiz-meta">
+                {{ statusLabel(job.status) }} ·
+                {{ job.createdAt | date: 'medium' }}
+              </p>
+              <div class="panel-actions">
+                <button mat-flat-button type="button" (click)="open(job)">
+                  Raporu aç
+                </button>
+                <button
+                  mat-button
+                  type="button"
+                  (click)="viewChange.emit('history')"
+                >
+                  Geçmişi gör
+                </button>
+              </div>
+            } @else {
+              <h2 class="nabiz-title">Henüz tarama yok</h2>
+              <p class="nabiz-body">
+                İlk adresi girerek teknik kalite, UI ve erişilebilirlik
+                analizini başlatın.
+              </p>
+              <div class="panel-actions">
+                <button
+                  mat-flat-button
+                  type="button"
+                  (click)="viewChange.emit('new-scan')"
+                >
+                  Yeni tarama başlat
+                </button>
+              </div>
+            }
+          </article>
+
+          <article class="card">
+            <p class="nabiz-eyebrow">Hesap</p>
+            <dl class="stats">
+              <div>
+                <dt>Toplam tarama</dt>
+                <dd>{{ jobs().length }}</dd>
+              </div>
+              <div>
+                <dt>Tamamlanan</dt>
+                <dd>{{ completedJobs().length }}</dd>
+              </div>
+              <div>
+                <dt>Tek seferde adres</dt>
+                <dd>{{ capabilities()?.maxUrls ?? 0 }}</dd>
+              </div>
+              <div>
+                <dt>Saatlik tarama</dt>
+                <dd>{{ capabilities()?.hourlyLimit ?? 0 }}</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article class="card">
+            <p class="nabiz-eyebrow">Nasıl çalışır</p>
+            <ol class="steps">
+              <li>
+                En fazla üç adres girin; yerel ve özel ağ adresleri engellenir.
+              </li>
+              <li>Sayfa masaüstü ve mobil görünümde ayrı ayrı incelenir.</li>
+              <li>
+                Bulgular kanıtıyla birlikte kaydedilir; geçmiş hesabınıza
+                özeldir.
+              </li>
+            </ol>
+          </article>
+        </section>
+      }
+      @case ('new-scan') {
+        <section class="card">
+          <h2 class="nabiz-title">Taranacak adresler</h2>
+          <p class="nabiz-body">
+            Her satıra bir adres yazın. Adresler yalnızca http:// veya https://
+            olabilir ve aynı adres iki kez eklenemez.
+          </p>
+          <app-scan-form
+            [busy]="starting()"
+            [locked]="!!activeJob()"
+            (started)="start($event)"
+          />
+        </section>
+
+        @if (activeJob(); as job) {
+          <section class="card running" aria-labelledby="running-title">
+            <h2 id="running-title" class="nabiz-title">Tarama sürüyor</h2>
+            <p class="nabiz-body">{{ job.urls.join(', ') }}</p>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="job.progress"
+              aria-label="Tarama ilerlemesi"
+            />
+            <p class="nabiz-meta">
+              {{ statusLabel(job.status) }} · %{{ job.progress }}
+            </p>
+            <div class="panel-actions">
+              <button mat-button type="button" (click)="cancel(job)">
+                Taramayı iptal et
+              </button>
+            </div>
+          </section>
+        }
+      }
+      @case ('history') {
+        <app-scan-history
+          [jobs]="jobs()"
+          [selectedId]="selected()?.id ?? null"
+          [loading]="loading()"
+          (opened)="open($event)"
+          (cancelled)="cancel($event)"
+        />
+      }
+      @case ('compare') {
+        <app-scan-compare
+          [jobs]="jobs()"
+          [selectedId]="selected()?.id ?? null"
+        />
+      }
+      @case ('report') {
+        <div class="report-bar">
+          <button mat-button type="button" (click)="viewChange.emit('history')">
+            ← Geçmişe dön
+          </button>
+          <button mat-button type="button" (click)="viewChange.emit('panel')">
+            Panele dön
+          </button>
+        </div>
+        <app-scan-report [job]="selected()" [loading]="reportLoading()" />
+      }
+    }
+  }
+</section>

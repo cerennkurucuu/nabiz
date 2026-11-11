@@ -1,38 +1,110 @@
-<main>
-  <p class="eyebrow">Web kalite platformu</p>
-  <h1>Nabız<span aria-hidden="true">.</span></h1>
-  <p class="slogan">Web sitenin nabzını tut.</p>
-  <p class="description">
-    Teknik kalite, UI tutarlılığı ve temel erişilebilirlik analizi için
-    başlangıç altyapısı.
-  </p>
-  <p class="status" role="status">{{ status() }}</p>
-  <section
-    class="account"
-    aria-label="Kullanıcı hesabı"
-    [attr.aria-busy]="authLoading()"
+<mat-sidenav-container class="shell" [hasBackdrop]="false">
+  <mat-sidenav
+    #nav
+    class="nav"
+    [mode]="navMode()"
+    [opened]="navMode() === 'side' || navOpen()"
+    [fixedInViewport]="false"
   >
-    @if (authLoading()) {
-      <p role="status">Oturum kontrol ediliyor…</p>
-    } @else if (auth.session()?.user; as user) {
-      <p>Merhaba, {{ user.name }}</p>
-      <p class="account-email">{{ user.email }}</p>
-      <button type="button" (click)="logout()" [disabled]="signingOut()">
-        {{ signingOut() ? 'Çıkış yapılıyor…' : 'Oturumu kapat' }}
+    <div class="nav-brand">
+      <span class="brand-mark" aria-hidden="true">N</span>
+      <span class="brand-text">
+        <span class="brand-name">Nabız</span>
+        <span class="brand-tagline">Web sitenin nabzını tut.</span>
+      </span>
+    </div>
+
+    @if (auth.session()?.user) {
+      <nav class="nav-links" aria-label="Ana gezinme">
+        @for (item of navItems; track item.id) {
+          <button
+            type="button"
+            class="nav-item"
+            [class.active]="isActive(item.id)"
+            [attr.aria-current]="isActive(item.id) ? 'page' : null"
+            (click)="setView(item.id)"
+          >
+            <span class="nav-item-label">{{ item.label }}</span>
+            <span class="nav-item-hint">{{ item.hint }}</span>
+          </button>
+        }
+      </nav>
+    }
+
+    @if (auth.session()?.user; as user) {
+      <div class="nav-account">
+        <mat-divider />
+        <p class="nav-account-name">{{ user.name }}</p>
+        <p class="nav-account-mail">{{ user.email }}</p>
+        <button mat-stroked-button type="button" (click)="logout()">
+          Oturumu kapat
+        </button>
+      </div>
+    }
+  </mat-sidenav>
+
+  <mat-sidenav-content class="content">
+    <mat-toolbar class="topbar">
+      <button
+        mat-icon-button
+        class="nav-toggle"
+        type="button"
+        aria-label="Menüyü aç"
+        (click)="toggleNav()"
+      >
+        <span class="burger" aria-hidden="true"></span>
       </button>
-    } @else if (auth.session()?.configured) {
-      <a class="login" [href]="auth.loginUrl">Google ile giriş yap</a>
-      <p class="account-email">
-        Kayıtlarına yalnızca kendi hesabınla erişebilirsin.
+
+      <div class="topbar-title">
+        <h1 class="nabiz-title">{{ title.title }}</h1>
+        <p class="nabiz-meta topbar-subtitle">{{ title.subtitle }}</p>
+      </div>
+
+      <span class="status" [attr.data-ready]="apiReady()">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span class="status-text">{{ status() }}</span>
+      </span>
+    </mat-toolbar>
+
+    <main class="page">
+      @if (authLoading()) {
+        <p class="nabiz-body" role="status">Oturum kontrol ediliyor…</p>
+      } @else if (auth.session()?.user; as user) {
+        @if (view() === 'panel') {
+          <p class="nabiz-body greeting">Merhaba, {{ user.name }}</p>
+        }
+        <app-scan-panel [view]="view()" (viewChange)="setView($event)" />
+      } @else if (auth.session()?.configured) {
+        <section class="login">
+          <h2 class="nabiz-display">Nabız'a giriş yapın</h2>
+          <p class="nabiz-body">
+            Taramalar yalnızca hesabınıza aittir; geçmiş ve raporlar başka
+            kullanıcılar tarafından görülemez.
+          </p>
+          <app-google-login
+            (signedIn)="authError.set('')"
+            (failure)="authError.set($event)"
+          />
+          @if (authError()) {
+            <p class="nabiz-body error" role="alert">{{ authError() }}</p>
+          }
+        </section>
+      } @else {
+        <section class="login">
+          <h2 class="nabiz-display">Nabız</h2>
+          <p class="nabiz-body">
+            Google ile giriş henüz kullanıma açılmadı. Yönetici istemci
+            kimliğini tanımladığında giriş burada görünecek.
+          </p>
+        </section>
+      }
+    </main>
+
+    <footer class="app-footer">
+      <p class="nabiz-meta">
+        Taranan adreslerin sahibine ait olması kullanıcının sorumluluğundadır.
+        Nabız yalnızca teknik kalite analizi yapar.
       </p>
-    } @else if (auth.session()) {
-      <p>Google ile giriş henüz kullanıma açılmadı.</p>
-    }
-    @if (authError()) {
-      <p class="auth-error" role="alert">{{ authError() }}</p>
-    }
-  </section>
-  <p class="note">
-    Kurulum aşaması · Tarama özellikleri henüz kullanıma açık değil.
-  </p>
-</main>
+    </footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>

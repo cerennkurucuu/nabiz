@@ -1,0 +1,64 @@
+// Nabız tasarım token'ları.
+// Tek kaynak: renk, tipografi, boşluk, radius ve yükseklik değerleri.
+// Bileşenler bu değişkenleri kullanır; bileşene özel renk veya boşluk yazılmaz.
+
+:root {
+  // Marka
+  --nabiz-primary: #2563eb;
+  --nabiz-primary-hover: #1d4ed8;
+  --nabiz-primary-active: #1e40af;
+  --nabiz-primary-soft: #e8effe;
+  --nabiz-primary-border: #c7d9fb;
+
+  // Metin ve yüzeyler
+  --nabiz-ink: #14213d;
+  --nabiz-ink-muted: #4b5b71;
+  --nabiz-ink-subtle: #6b7a90;
+  --nabiz-canvas: #f7f9fc;
+  --nabiz-surface: #ffffff;
+  --nabiz-surface-muted: #f1f4f9;
+  --nabiz-border: #dde4ee;
+  --nabiz-border-soft: #e9eef5;
+
+  // Durum renkleri (yalnızca anlamlı durumlarda)
+  --nabiz-success: #0f7b3e;
+  --nabiz-success-soft: #e7f4ec;
+  --nabiz-warning: #b45309;
+  --nabiz-warning-soft: #fdf2e3;
+  --nabiz-danger: #c02626;
+  --nabiz-danger-soft: #fbeaea;
+  --nabiz-info: #2563eb;
+  --nabiz-info-soft: #e8effe;
+
+  // Boşluk (8 px tabanlı)
+  --nabiz-space-1: 4px;
+  --nabiz-space-2: 8px;
+  --nabiz-space-3: 12px;
+  --nabiz-space-4: 16px;
+  --nabiz-space-5: 24px;
+  --nabiz-space-6: 32px;
+  --nabiz-space-7: 40px;
+  --nabiz-space-8: 48px;
+
+  // Köşe yarıçapı
+  --nabiz-radius-sm: 6px;
+  --nabiz-radius-md: 10px;
+  --nabiz-radius-lg: 14px;
+  --nabiz-radius-pill: 999px;
+
+  // Yükseklik
+  --nabiz-shadow-1:
+    0 1px 2px rgba(20, 33, 61, 0.05), 0 1px 3px rgba(20, 33, 61, 0.07);
+  --nabiz-shadow-2: 0 4px 14px rgba(20, 33, 61, 0.08);
+  --nabiz-header-height: 64px;
+  // Sol gezinme genişliği (masaüstü).
+  --nabiz-nav-width: 248px;
+
+  // Tipografi
+  --nabiz-font:
+    'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial,
+    sans-serif;
+  --nabiz-font-mono:
+    'SFMono-Regular', 'JetBrains Mono', 'Cascadia Mono', Consolas,
+    'Liberation Mono', monospace;
+}

@@ -7,10 +7,24 @@ export default tseslint.config(
       '**/dist/**',
       '**/.angular/**',
       '**/generated/**',
+      // Downloaded browser binaries and other local tool caches are not source.
+      '**/.cache/**',
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    files: ['**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'module',
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        URL: 'readonly',
+      },
+    },
+  },
   {
     files: ['**/*.ts'],
     rules: {

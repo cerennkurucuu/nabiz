@@ -1,0 +1,45 @@
+<form class="scan-form" [formGroup]="form" (ngSubmit)="submit()">
+  <mat-form-field appearance="outline" class="urls-field">
+    <mat-label>Taranacak adresler</mat-label>
+    <textarea
+      matInput
+      id="scan-urls"
+      formControlName="urls"
+      rows="3"
+      spellcheck="false"
+      autocomplete="off"
+      placeholder="https://example.com"
+      aria-describedby="scan-urls-help"
+    ></textarea>
+    <mat-hint id="scan-urls-help"
+      >Her satıra bir adres · en fazla üç adres</mat-hint
+    >
+    @if (error()) {
+      <mat-error>{{ error() }}</mat-error>
+    }
+  </mat-form-field>
+
+  @if (parsed().length) {
+    <mat-chip-set class="url-chips" aria-label="Eklenen adresler">
+      @for (url of parsed(); track url; let index = $index) {
+        <mat-chip [removable]="!busy() && !locked()" (removed)="remove(index)">
+          {{ url }}
+        </mat-chip>
+      }
+    </mat-chip-set>
+  }
+
+  <button
+    mat-flat-button
+    type="submit"
+    [disabled]="!canSubmit()"
+    class="start-button"
+  >
+    @if (busy()) {
+      <mat-spinner diameter="18" class="button-spinner" />
+      Tarama başlatılıyor
+    } @else {
+      Taramayı başlat
+    }
+  </button>
+</form>

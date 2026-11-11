@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Aynı ref için yeni bir push geldiğinde iptal et; kaynaklar boşuna harcanmaz.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+  # Chromium ikilileri depodaki .cache altına kurulur (scripts/install-browser.mjs).
+  PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
+
+jobs:
+  kalite:
+    name: Lint, tip, test ve build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: Node.js kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Bağımlılıkları kur
+        run: npm ci
+
+      - name: Gizli bilgi taraması
+        run: |
+          if git grep -nIE '(GOOGLE_CLIENT_SECRET|AIza[0-9A-Za-z_-]{35}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- . ; then
+            echo 'Depoda gizli bilgi bulundu.'
+            exit 1
+          fi
+          echo 'Gizli bilgi bulunmadı.'
+
+      - name: Bağımlılık güvenlik denetimi (üretim bağımlılıkları)
+        # Prisma CLI zincirindeki "high" uyarıları 7.x ana sürüm yükseltmesi
+        # gerektiriyor; ayrıntı docs/OPERATIONS.md içinde. Critical seviye
+        # yayın kapısıdır.
+        run: npm audit --omit=dev --audit-level=critical
+
+      - name: Prisma şemasını doğrula
+        run: npm run prisma:validate
+
+      - name: Prisma istemcisini üret
+        run: npm run prisma:generate
+
+      - name: Migration sürecini doğrula (geçici SQLite)
+        env:
+          DATABASE_URL: file:./ci.db
+        run: |
+          npm run db:deploy
+          npm run prisma:validate
+          rm -f apps/api/prisma/ci.db
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Biçim denetimi
+        run: npm run format:check
+
+      - name: Tip denetimi
+        run: npm run typecheck
+
+      - name: Birim ve entegrasyon testleri
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+  e2e:
+    name: Uçtan uca tarama testi
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: kalite
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: Node.js kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Bağımlılıkları kur
+        run: npm ci
+
+      - name: Prisma istemcisini üret
+        run: npm run prisma:generate
+
+      - name: Chromium kur
+        run: npm run browser:install
+
+      - name: Uçtan uca testler (gerçek Chromium, yerel fixture sunucusu)
+        run: npm run e2e

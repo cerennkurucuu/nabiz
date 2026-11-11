@@ -1,0 +1,35 @@
+:host {
+  display: block;
+}
+
+.scan-form {
+  display: grid;
+  gap: var(--nabiz-space-3);
+  justify-items: start;
+}
+
+.urls-field {
+  width: 100%;
+}
+
+.url-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nabiz-space-2);
+}
+
+.start-button {
+  min-height: 44px;
+  padding-inline: var(--nabiz-space-5);
+}
+
+.button-spinner {
+  display: inline-block;
+  margin-right: var(--nabiz-space-2);
+  vertical-align: middle;
+}
+
+// Angular Material spinner'ı buton rengine uyarlar.
+:host ::ng-deep .button-spinner circle {
+  stroke: currentColor;
+}

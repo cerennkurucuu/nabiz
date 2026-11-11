@@ -1,0 +1,126 @@
+<section class="compare" aria-labelledby="compare-title">
+  <h2 id="compare-title" class="nabiz-title">İki taramayı karşılaştır</h2>
+  <p class="nabiz-body">
+    Aynı adresi içeren iki tamamlanmış taramayı seçin. Karşılaştırma yalnızca
+    doğrulanabilen bulgular üzerinden yapılır; eksik taramalarda düzelme iddiası
+    üretilmez.
+  </p>
+
+  @if (error()) {
+    <p class="nabiz-body error" role="alert">{{ error() }}</p>
+  }
+
+  @if (candidates().length < 2) {
+    <div class="empty">
+      <p class="nabiz-subtitle">Karşılaştırma için iki tarama gerekli</p>
+      <p class="nabiz-body">
+        Karşılaştırılabilir taramalar tamamlandığında burada listelenir.
+      </p>
+    </div>
+  } @else {
+    <div class="compare-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Önceki tarama</mat-label>
+        <mat-select [value]="beforeId()" (valueChange)="onBefore($event)">
+          <mat-option value="">Seçin</mat-option>
+          @for (job of candidates(); track job.id) {
+            <mat-option [value]="job.id">
+              {{ job.createdAt | date: 'short' }} · {{ job.urls.join(', ') }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Sonraki tarama</mat-label>
+        <mat-select [value]="afterId()" (valueChange)="onAfter($event)">
+          <mat-option value="">Seçin</mat-option>
+          @for (job of afterCandidates(); track job.id) {
+            <mat-option [value]="job.id">
+              {{ job.createdAt | date: 'short' }} · {{ job.urls.join(', ') }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Adres</mat-label>
+        <mat-select
+          [value]="compareUrl()"
+          (valueChange)="compareUrl.set($event)"
+          [disabled]="!compareUrls().length"
+        >
+          <mat-option value="">Seçin</mat-option>
+          @for (url of compareUrls(); track url) {
+            <mat-option [value]="url">{{ url }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <button
+      mat-flat-button
+      type="button"
+      [disabled]="!canCompare() || loading()"
+      (click)="compare()"
+    >
+      {{ loading() ? 'Karşılaştırılıyor…' : 'Karşılaştır' }}
+    </button>
+  }
+
+  @if (comparison(); as result) {
+    <section class="result" aria-labelledby="compare-result-title">
+      <h3 id="compare-result-title" class="nabiz-subtitle">
+        Karşılaştırma sonucu
+      </h3>
+      <ul class="comparison-stats">
+        <li data-kind="added">
+          <span class="stat-value">{{ result.added.length }}</span>
+          <span class="stat-label">yeni</span>
+        </li>
+        <li data-kind="continuing">
+          <span class="stat-value">{{ result.continuing.length }}</span>
+          <span class="stat-label">devam eden</span>
+        </li>
+        <li data-kind="resolved">
+          <span class="stat-value">{{ result.resolved.length }}</span>
+          <span class="stat-label">çözülen</span>
+        </li>
+        <li data-kind="unverified">
+          <span class="stat-value">{{ result.unverified.length }}</span>
+          <span class="stat-label">doğrulanamayan</span>
+        </li>
+      </ul>
+
+      @for (
+        group of [
+          { title: 'Yeni bulgular', items: result.added, kind: 'added' },
+          {
+            title: 'Çözülen bulgular',
+            items: result.resolved,
+            kind: 'resolved',
+          },
+          {
+            title: 'Doğrulanamayan bulgular',
+            items: result.unverified,
+            kind: 'unverified',
+          },
+        ];
+        track group.kind
+      ) {
+        @if (group.items.length) {
+          <h4 class="nabiz-subtitle">{{ group.title }}</h4>
+          <ul class="comparison-list">
+            @for (item of group.items; track item.id) {
+              <li [attr.data-kind]="group.kind">
+                <span class="rule">{{ item.rule }}</span>
+                <span class="message">{{ item.message }}</span>
+                <span class="evidence nabiz-mono">{{ item.evidence }}</span>
+              </li>
+            }
+          </ul>
+        }
+      }
+    </section>
+  }
+</section>

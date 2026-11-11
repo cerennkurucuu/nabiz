@@ -1,0 +1,605 @@
+@if (!job()) {
+  <div class="empty">
+    <h2 class="nabiz-title">Rapor yok</h2>
+    <p class="nabiz-body">
+      Bir tarama seçtiğinizde bulgular, kanıtlar ve karşılaştırmalar burada
+      görünür.
+    </p>
+  </div>
+} @else if (loading()) {
+  <p class="nabiz-meta" role="status">Rapor yükleniyor…</p>
+} @else {
+  <header class="report-head">
+    <div class="report-head-main">
+      <p class="nabiz-eyebrow">Rapor</p>
+      <h2 class="nabiz-title report-url">{{ job()!.urls.join(', ') }}</h2>
+      <p class="nabiz-meta">
+        {{ statusLabel(job()!.status) }} ·
+        {{ job()!.createdAt | date: 'medium' }} ·
+        {{ summary().analyzedPages }}/{{ summary().pages }} görünüm analiz
+        edildi
+        @if (job()!.error) {
+          · {{ errorLabel(job()!.error) }}
+        }
+      </p>
+    </div>
+    <ul class="report-stats" aria-label="Bulgu özeti">
+      @if (summary().analyzedPages > 0) {
+        <li class="stat" data-severity="error">
+          <span class="stat-value">{{ summary().findings.errors }}</span>
+          <span class="stat-label">hata</span>
+        </li>
+        <li class="stat" data-severity="warning">
+          <span class="stat-value">{{ summary().findings.warnings }}</span>
+          <span class="stat-label">uyarı</span>
+        </li>
+        <li class="stat" data-severity="info">
+          <span class="stat-value">{{ summary().findings.infos }}</span>
+          <span class="stat-label">bilgi</span>
+        </li>
+        <li class="stat" data-severity="confirmed">
+          <span class="stat-value">{{ summary().findings.confirmed }}</span>
+          <span class="stat-label">doğrulanmış</span>
+        </li>
+        <li class="stat" data-severity="uncertain">
+          <span class="stat-value">{{ summary().findings.uncertain }}</span>
+          <span class="stat-label">belirsiz</span>
+        </li>
+      } @else {
+        <li class="stat stat-neutral">
+          <span class="stat-value">—</span>
+          <span class="stat-label">değerlendirme yok</span>
+        </li>
+      }
+    </ul>
+
+    @if (hasChecks()) {
+      <ul class="report-stats check-totals" aria-label="Kontrol özeti">
+        <li class="stat" data-severity="confirmed">
+          <span class="stat-value">{{ checkTotals().passed }}</span>
+          <span class="stat-label">geçen kontrol</span>
+        </li>
+        <li class="stat" data-severity="error">
+          <span class="stat-value">{{ checkTotals().failed }}</span>
+          <span class="stat-label">sorunlu kontrol</span>
+        </li>
+        <li class="stat" data-severity="warning">
+          <span class="stat-value">{{ checkTotals().inconclusive }}</span>
+          <span class="stat-label">doğrulanamayan</span>
+        </li>
+        <li class="stat" data-severity="uncertain">
+          <span class="stat-value">{{ checkTotals().skipped }}</span>
+          <span class="stat-label">çalıştırılmadı</span>
+        </li>
+        <li class="stat stat-neutral">
+          <span class="stat-value">{{ checkTotals().total }}</span>
+          <span class="stat-label">toplam kontrol</span>
+        </li>
+      </ul>
+    }
+  </header>
+
+  <div class="filter-actions section-actions">
+    <button mat-button type="button" (click)="expandAll()">Tümünü aç</button>
+    <button mat-button type="button" (click)="collapseAll()">
+      Tümünü kapat
+    </button>
+  </div>
+
+  @if (job()!.result && !job()!.result!.complete) {
+    <section class="partial" aria-labelledby="partial-title">
+      <h3 id="partial-title" class="nabiz-subtitle">Eksik tarama</h3>
+      <p class="nabiz-body">
+        Bazı görünümler analiz edilemedi. Aşağıdaki açıklamaları kontrol edin;
+        eksik kalan sayfalar için kalite kusuru üretilmedi.
+      </p>
+      <ul class="partial-list">
+        @for (page of pages(); track page.url + page.viewport) {
+          @if (!page.complete) {
+            <li>
+              <strong>{{ page.viewport }} · {{ page.url }}</strong>
+              <span>{{
+                page.statusMessage ?? 'Bu görünüm analiz edilemedi.'
+              }}</span>
+            </li>
+          }
+        }
+      </ul>
+    </section>
+  }
+
+  @if (!job()!.result) {
+    <p class="nabiz-body" role="status">
+      Bu tarama henüz sonuçlanmadı. İlerleme durumu geçmiş listesinde
+      gösteriliyor.
+    </p>
+  }
+
+  @for (section of sections; track section.id) {
+    @if (section.id === 'summary') {
+      <details class="group section" #groupElement [open]="true">
+        <summary>
+          <span class="group-title">{{ section.label }}</span>
+          <span class="group-count">{{ summary().analyzedPages }} görünüm</span>
+        </summary>
+        <div class="group-body">
+          <p class="nabiz-body">{{ section.description }}</p>
+          @if (hasEngines()) {
+            <ul class="engine-list" aria-label="Motor durumları">
+              @for (engine of engines(); track engine.id) {
+                <li class="engine" [attr.data-status]="engine.status">
+                  <span class="engine-name">{{ engineName(engine.id) }}</span>
+                  <span class="engine-status">{{
+                    engineStatus(engine.status)
+                  }}</span>
+                  <span class="engine-meta"
+                    >{{ engine.checks }} kontrol ·
+                    {{ engine.findings }} bulgu</span
+                  >
+                  <span class="engine-message">{{ engine.message }}</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="check-reason">
+              Bu kayıt motor bazlı durum bilgisi içermiyor; kontrol sonuçları
+              aşağıda listelenir.
+            </p>
+          }
+        </div>
+      </details>
+    } @else if (section.id === 'pagespeed') {
+      @if (pageSpeed().length) {
+        <details class="group section pagespeed" #groupElement [open]="false">
+          <summary>
+            <span class="group-title">{{ section.label }}</span>
+            <span class="group-count">{{ pageSpeed().length }} sorgu</span>
+          </summary>
+          <div class="group-body">
+            <p class="nabiz-body">{{ section.description }}</p>
+            @if (!pageSpeedKeyConfigured()) {
+              <p class="check-reason">
+                PAGESPEED_API_KEY yapılandırılmamış. Google'ın anonim kotası
+                kullanıldığı için istekler sınırlandırılabilir veya hiç
+                karşılanamayabilir.
+              </p>
+            }
+            <ul class="pagespeed-list">
+              @for (item of pageSpeed(); track item.url + item.strategy) {
+                <li class="pagespeed-item" [attr.data-ok]="item.ok">
+                  <div class="check-head">
+                    <span class="viewport">{{
+                      strategyLabel(item.strategy)
+                    }}</span>
+                    <span class="check-title">{{ item.url }}</span>
+                  </div>
+                  @if (item.ok) {
+                    <ul class="score-list">
+                      @for (
+                        score of [
+                          {
+                            label: 'Performans',
+                            value: item.scores?.performance,
+                          },
+                          {
+                            label: 'Erişilebilirlik',
+                            value: item.scores?.accessibility,
+                          },
+                          {
+                            label: 'En iyi uygulamalar',
+                            value: item.scores?.bestPractices,
+                          },
+                          { label: 'SEO', value: item.scores?.seo },
+                        ];
+                        track score.label
+                      ) {
+                        <li>
+                          <span class="score-label">{{ score.label }}</span>
+                          <span class="score-value">{{
+                            score.value === null || score.value === undefined
+                              ? '—'
+                              : score.value
+                          }}</span>
+                        </li>
+                      }
+                    </ul>
+                    <ul class="metric-list">
+                      @for (
+                        metric of [
+                          {
+                            label: 'İlk içerik',
+                            value: item.metrics?.firstContentfulPaint,
+                          },
+                          {
+                            label: 'En büyük içerik',
+                            value: item.metrics?.largestContentfulPaint,
+                          },
+                          {
+                            label: 'Engelleme süresi',
+                            value: item.metrics?.totalBlockingTime,
+                          },
+                          {
+                            label: 'Düzen kayması',
+                            value: item.metrics?.cumulativeLayoutShift,
+                          },
+                          {
+                            label: 'Hız indeksi',
+                            value: item.metrics?.speedIndex,
+                          },
+                          {
+                            label: 'İlk bayt süresi',
+                            value: item.metrics?.timeToFirstByte,
+                          },
+                          {
+                            label: 'Etkileşim gecikmesi',
+                            value: item.metrics?.interactionToNextPaint,
+                          },
+                        ];
+                        track metric.label
+                      ) {
+                        @if (metric.value) {
+                          <li>
+                            <span class="score-label">{{ metric.label }}</span>
+                            <span class="score-value">{{ metric.value }}</span>
+                          </li>
+                        }
+                      }
+                    </ul>
+                    @if (item.fieldData) {
+                      <div class="field-data">
+                        <p class="nabiz-meta">
+                          Saha verisi (CrUX) — gerçek kullanıcı ölçümleri
+                          {{
+                            item.fieldData.category
+                              ? '(' + item.fieldData.category + ')'
+                              : ''
+                          }}
+                        </p>
+                        <ul class="metric-list">
+                          @for (
+                            metric of item.fieldData.metrics;
+                            track metric.name
+                          ) {
+                            <li>
+                              <span class="score-label">{{ metric.name }}</span>
+                              <span class="score-value">{{
+                                metric.value
+                              }}</span>
+                              <span class="score-label"
+                                >p{{ metric.percentile }}</span
+                              >
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                  } @else {
+                    @if (pageSpeedError(item.errorCode)) {
+                      <p class="check-head">
+                        <span class="rule">{{
+                          pageSpeedError(item.errorCode)
+                        }}</span>
+                      </p>
+                    }
+                    <p class="check-reason">{{ item.error }}</p>
+                  }
+                  <p class="nabiz-meta">
+                    {{ item.checkedAt | date: 'medium' }}
+                  </p>
+                </li>
+              }
+            </ul>
+          </div>
+        </details>
+      }
+    } @else if (section.id === 'screenshots') {
+      @if (hasArtifacts()) {
+        <details class="group section" #groupElement [open]="false">
+          <summary>
+            <span class="group-title">{{ section.label }}</span>
+            <span class="group-count">{{ artifacts().length }} görsel</span>
+          </summary>
+          <div class="group-body">
+            <p class="nabiz-body">{{ section.description }}</p>
+            <ul class="artifact-grid">
+              @for (artifact of artifacts(); track artifact.id) {
+                <li class="artifact">
+                  <button
+                    type="button"
+                    class="artifact-button"
+                    (click)="openArtifact(artifact)"
+                  >
+                    <img
+                      [src]="artifact.url"
+                      [alt]="artifact.label"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </button>
+                  <span class="nabiz-meta">{{ artifact.label }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        </details>
+      }
+    } @else if (section.id === 'recommendations') {
+      @if (recommendations().length) {
+        <details class="group section" #groupElement [open]="false">
+          <summary>
+            <span class="group-title">{{ section.label }}</span>
+            <span class="group-count"
+              >{{ recommendations().length }} öneri</span
+            >
+          </summary>
+          <div class="group-body">
+            <p class="nabiz-body">{{ section.description }}</p>
+            <ol class="recommendation-list">
+              @for (item of recommendations(); track item.rule) {
+                <li class="recommendation" [attr.data-severity]="item.severity">
+                  <div class="recommendation-head">
+                    <span class="rule">{{ item.rule }}</span>
+                    <span class="check-title">{{ item.title }}</span>
+                    <span class="severity">{{
+                      severityLabel(item.severity)
+                    }}</span>
+                    <span class="viewport">{{ item.count }} bulgu</span>
+                  </div>
+                  <p class="nabiz-body suggestion">{{ item.suggestion }}</p>
+                </li>
+              }
+            </ol>
+          </div>
+        </details>
+      }
+    } @else {
+      @if (sectionVisible(section.id)) {
+        <details class="group section" #groupElement [open]="false">
+          <summary>
+            <span class="group-title">{{ section.label }}</span>
+            <span class="group-count"
+              >{{ sectionChecks(section.id).length }} kontrol ·
+              {{ sectionFindings(section.id).length }} bulgu</span
+            >
+          </summary>
+          <div class="group-body">
+            <p class="nabiz-body">{{ section.description }}</p>
+
+            @if (sectionChecks(section.id).length) {
+              <ul class="check-list">
+                @for (
+                  check of visibleItems(
+                    section.id + '-checks',
+                    sectionChecks(section.id)
+                  );
+                  track check.id
+                ) {
+                  <li class="check" [attr.data-status]="check.status">
+                    <div class="check-head">
+                      <span class="rule">{{ check.rule }}</span>
+                      <span class="check-title">{{ check.title }}</span>
+                      <span class="viewport">{{ check.viewport }}</span>
+                      <span class="check-status">{{
+                        checkStatusLabel(check.status)
+                      }}</span>
+                    </div>
+                    <p class="check-message">{{ check.message }}</p>
+                    @if (check.measurement) {
+                      <p class="check-measurement">{{ check.measurement }}</p>
+                    }
+                    @if (check.evidence) {
+                      <p class="nabiz-mono check-evidence">
+                        {{ check.evidence }}
+                      </p>
+                    }
+                    @if (check.reason) {
+                      <p class="check-reason">Neden: {{ check.reason }}</p>
+                    }
+                    <p class="nabiz-meta">
+                      {{ check.checkedAt | date: 'medium' }}
+                    </p>
+                  </li>
+                }
+              </ul>
+              @if (
+                hasMore(
+                  section.id + '-checks',
+                  sectionChecks(section.id).length
+                )
+              ) {
+                <button
+                  mat-button
+                  type="button"
+                  (click)="showMore(section.id + '-checks')"
+                >
+                  Daha fazla kontrol göster
+                </button>
+              }
+            }
+
+            @if (sectionFindings(section.id).length) {
+              <ul class="finding-list">
+                @for (
+                  finding of visibleItems(
+                    section.id + '-findings',
+                    sectionFindings(section.id)
+                  );
+                  track finding.id
+                ) {
+                  <li
+                    class="finding"
+                    [attr.data-severity]="finding.severity"
+                    [attr.data-status]="finding.status"
+                  >
+                    <div class="check-head">
+                      <span class="rule">{{ finding.rule }}</span>
+                      <span class="severity">{{
+                        severityLabel(finding.severity)
+                      }}</span>
+                      <span class="viewport">{{ finding.viewport }}</span>
+                      <span class="confidence">
+                        {{
+                          finding.status === 'confirmed'
+                            ? 'doğrulanmış'
+                            : 'belirsiz'
+                        }}
+                      </span>
+                    </div>
+                    <p class="nabiz-subtitle finding-title">
+                      {{ finding.message }}
+                    </p>
+                    <p class="nabiz-body suggestion">
+                      {{ finding.suggestion }}
+                    </p>
+                    <dl class="evidence">
+                      <dt>Kanıt</dt>
+                      <dd class="nabiz-mono">{{ finding.evidence }}</dd>
+                      @if (finding.selector) {
+                        <dt>Seçici</dt>
+                        <dd class="nabiz-mono">{{ finding.selector }}</dd>
+                      }
+                    </dl>
+                  </li>
+                }
+              </ul>
+              @if (
+                hasMore(
+                  section.id + '-findings',
+                  sectionFindings(section.id).length
+                )
+              ) {
+                <button
+                  mat-button
+                  type="button"
+                  (click)="showMore(section.id + '-findings')"
+                >
+                  Daha fazla bulgu göster
+                </button>
+              }
+            }
+          </div>
+        </details>
+      }
+    }
+  }
+
+  @if (allFindings().length) {
+    <section class="filters" aria-label="Bulgu filtreleri">
+      <div class="filter-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Önem</mat-label>
+          <mat-select
+            [value]="filters().severity"
+            (valueChange)="setFilter('severity', $event)"
+          >
+            @for (option of severityOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Kategori</mat-label>
+          <mat-select
+            [value]="filters().category"
+            (valueChange)="setFilter('category', $event)"
+          >
+            @for (option of categoryOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Kural</mat-label>
+          <mat-select
+            [value]="filters().rule"
+            (valueChange)="setFilter('rule', $event)"
+          >
+            @for (option of ruleOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Kontrol durumu</mat-label>
+          <mat-select
+            [value]="statusFilter()"
+            (valueChange)="statusFilter.set($event)"
+          >
+            @for (option of statusOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Görünüm</mat-label>
+          <mat-select [value]="viewport()" (valueChange)="viewport.set($event)">
+            @for (option of viewportOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Adres</mat-label>
+          <mat-select
+            [value]="urlFilter()"
+            (valueChange)="urlFilter.set($event)"
+            [disabled]="!urlOptions().length"
+          >
+            <mat-option value="">Tüm adresler</mat-option>
+            @for (url of urlOptions(); track url) {
+              <mat-option [value]="url">{{ url }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="grow">
+          <mat-label>Rapor içinde ara</mat-label>
+          <input
+            matInput
+            type="search"
+            [value]="filters().query"
+            (input)="setFilter('query', $any($event.target).value)"
+            autocomplete="off"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="filter-actions">
+        @if (isFiltered()) {
+          <button mat-button type="button" (click)="clearFilters()">
+            Filtreleri temizle
+          </button>
+        }
+        <span class="nabiz-meta count">
+          {{ visibleFindings().length }} / {{ allFindings().length }} bulgu ·
+          {{ visibleChecks().length }} kontrol
+        </span>
+      </div>
+    </section>
+  }
+}
+
+@if (zoomed()) {
+  <div
+    class="lightbox"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Büyütülmüş görsel"
+  >
+    <button
+      type="button"
+      class="lightbox-close"
+      (click)="closeArtifact()"
+      aria-label="Görseli kapat"
+    >
+      Kapat
+    </button>
+    <img [src]="zoomed()!.url" [alt]="zoomed()!.label" />
+    <p class="nabiz-meta">{{ zoomed()!.label }}</p>
+  </div>
+}

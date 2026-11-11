@@ -1,0 +1,90 @@
+<section class="history" aria-labelledby="history-title">
+  <div class="history-head">
+    <h2 id="history-title" class="nabiz-title">Taramalar</h2>
+    <span class="nabiz-meta">{{ filtered().length }} kayıt</span>
+  </div>
+
+  <div class="history-filters">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Durum</mat-label>
+      <mat-select [value]="statusFilter()" (valueChange)="onStatus($event)">
+        @for (option of statuses; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field grow">
+      <mat-label>Adres ara</mat-label>
+      <input
+        matInput
+        type="search"
+        [value]="query()"
+        (input)="onQuery($any($event.target).value)"
+        autocomplete="off"
+      />
+    </mat-form-field>
+  </div>
+
+  @if (loading()) {
+    <p class="nabiz-meta" role="status">Geçmiş yükleniyor…</p>
+  } @else if (!jobs().length) {
+    <div class="empty">
+      <p class="nabiz-subtitle">Henüz tarama yok</p>
+      <p class="nabiz-body">
+        İlk taramayı başlattığınızda sonuçlar burada, hesabınıza özel olarak
+        listelenir.
+      </p>
+    </div>
+  } @else if (!filtered().length) {
+    <div class="empty">
+      <p class="nabiz-subtitle">Eşleşen kayıt yok</p>
+      <p class="nabiz-body">
+        Filtreleri temizleyerek tüm geçmişi görebilirsiniz.
+      </p>
+    </div>
+  } @else {
+    <ul class="job-list">
+      @for (job of paged(); track job.id) {
+        <li class="job" [class.active]="job.id === selectedId()">
+          <button
+            type="button"
+            class="job-main"
+            (click)="opened.emit(job)"
+            [attr.aria-current]="job.id === selectedId() ? 'true' : null"
+          >
+            <span class="job-url">{{ job.urls.join(', ') }}</span>
+            <span class="job-meta">
+              <span class="status" [attr.data-status]="job.status">{{
+                statusLabel(job.status)
+              }}</span>
+              <span>{{ job.createdAt | date: 'medium' }}</span>
+              @if (job.status === 'running' || job.status === 'queued') {
+                <span>%{{ job.progress }}</span>
+              }
+            </span>
+          </button>
+          @if (job.status === 'queued' || job.status === 'running') {
+            <button
+              mat-button
+              type="button"
+              class="cancel"
+              (click)="cancelled.emit(job)"
+            >
+              İptal
+            </button>
+          }
+        </li>
+      }
+    </ul>
+
+    <mat-paginator
+      [length]="filtered().length"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 25, 50]"
+      (page)="onPage($event)"
+      aria-label="Tarama geçmişi sayfaları"
+    />
+  }
+</section>

@@ -1,0 +1,54 @@
+// Tipografi ölçeği. Başlık ve metin hiyerarşisi tek yerden yönetilir.
+
+.nabiz-display {
+  margin: 0;
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.nabiz-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.nabiz-subtitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.nabiz-body {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--nabiz-ink-muted);
+}
+
+.nabiz-meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--nabiz-ink-subtle);
+}
+
+.nabiz-mono {
+  font-family: var(--nabiz-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.nabiz-eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nabiz-ink-subtle);
+}

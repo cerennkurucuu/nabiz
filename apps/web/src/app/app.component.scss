@@ -1,73 +1,274 @@
 :host {
-  display: grid;
-  min-height: 100dvh;
-  place-items: center;
-}
-main {
-  width: min(42rem, 100%);
-  padding: clamp(1.5rem, 5vw, 4rem);
-}
-.eyebrow {
-  color: #53616b;
-  font-size: 0.85rem;
-}
-h1 {
-  margin: 1rem 0;
-  font-size: clamp(3rem, 12vw, 5rem);
-  letter-spacing: -0.06em;
-}
-h1 span {
-  color: #16735c;
-}
-.slogan {
-  font-size: 1.5rem;
-}
-.description {
-  line-height: 1.7;
-  color: #43515b;
-}
-.status {
-  margin-top: 2rem;
-  padding: 1rem;
-  border-left: 3px solid #16735c;
-  background: #eaf2ef;
-}
-.note {
-  margin-top: 2rem;
-  font-size: 0.85rem;
-  color: #53616b;
+  display: block;
+  height: 100dvh;
 }
 
-.account {
-  margin-top: 1.5rem;
+.shell {
+  height: 100%;
+  min-height: 100dvh;
+  background: var(--nabiz-canvas);
 }
-.account-email {
-  color: #53616b;
-  font-size: 0.9rem;
+
+.nav {
+  width: 248px;
+  border-right: 1px solid var(--nabiz-border);
+  background: var(--nabiz-surface);
+  padding: var(--nabiz-space-5) var(--nabiz-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nabiz-space-5);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--nabiz-space-3);
+}
+
+.brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--nabiz-radius-sm);
+  background: var(--nabiz-primary);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  flex: 0 0 auto;
+}
+
+.brand-text {
+  display: grid;
+  min-width: 0;
+}
+
+.brand-name {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.brand-tagline {
+  font-size: 0.75rem;
+  color: var(--nabiz-ink-subtle);
+}
+
+.nav-links {
+  display: grid;
+  gap: var(--nabiz-space-1);
+}
+
+.nav-item {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: var(--nabiz-space-2) var(--nabiz-space-3);
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: var(--nabiz-radius-sm);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--nabiz-ink-muted);
+  font: inherit;
+}
+
+.nav-item:hover {
+  background: var(--nabiz-surface-muted);
+}
+
+.nav-item.active {
+  border-left-color: var(--nabiz-primary);
+  background: var(--nabiz-primary-soft);
+  color: var(--nabiz-primary-hover);
+}
+
+.nav-item-label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.nav-item-hint {
+  font-size: 0.75rem;
+  color: var(--nabiz-ink-subtle);
+}
+
+.nav-item.active .nav-item-hint {
+  color: var(--nabiz-primary-hover);
+  opacity: 0.85;
+}
+
+.nav-account {
+  margin-top: auto;
+  display: grid;
+  gap: var(--nabiz-space-2);
+}
+
+.nav-account-name {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.nav-account-mail {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--nabiz-ink-subtle);
   overflow-wrap: anywhere;
 }
-.login,
-button {
-  display: inline-block;
-  padding: 0.75rem 1rem;
-  border: 1px solid #16735c;
-  border-radius: 0.35rem;
-  background: #fff;
-  color: #155b49;
-  font: inherit;
-  text-decoration: none;
-  cursor: pointer;
+
+/* İçerik kabuğu kendi içinde kaydırılır; üst çubuk ve rapor başlığı bu
+   kaydırma kabuğuna göre yapışkan kalır. */
+.content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
-.login:focus-visible,
-button:focus-visible {
-  outline: 3px solid #16735c;
-  outline-offset: 3px;
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--nabiz-space-4);
+  min-height: var(--nabiz-header-height);
+  padding: var(--nabiz-space-3) var(--nabiz-space-6);
+  background: var(--nabiz-surface);
+  border-bottom: 1px solid var(--nabiz-border);
 }
-button:disabled {
-  opacity: 0.6;
-  cursor: wait;
+
+.nav-toggle {
+  display: none;
 }
-.auth-error {
-  color: #a02222;
-  line-height: 1.6;
+
+.burger {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+  box-shadow:
+    0 -6px 0 currentColor,
+    0 6px 0 currentColor;
+}
+
+.topbar-title {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.topbar-subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nabiz-space-2);
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  color: var(--nabiz-ink-subtle);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--nabiz-warning);
+  flex: 0 0 auto;
+}
+
+.status[data-ready='true'] .status-dot {
+  background: var(--nabiz-success);
+}
+
+.page {
+  flex: 1 1 auto;
+  width: min(78rem, 100%);
+  margin-inline: auto;
+  padding: var(--nabiz-space-6) var(--nabiz-space-6) var(--nabiz-space-8);
+}
+
+.greeting {
+  margin: 0 0 var(--nabiz-space-4);
+  color: var(--nabiz-ink);
+  font-weight: 500;
+}
+
+.login {
+  display: grid;
+  gap: var(--nabiz-space-4);
+  justify-items: start;
+  max-width: 34rem;
+  margin: var(--nabiz-space-8) auto;
+  padding: var(--nabiz-space-6);
+  border: 1px solid var(--nabiz-border);
+  border-radius: var(--nabiz-radius-lg);
+  background: var(--nabiz-surface);
+  box-shadow: var(--nabiz-shadow-1);
+}
+
+.error {
+  padding: var(--nabiz-space-3) var(--nabiz-space-4);
+  border: 1px solid var(--nabiz-danger);
+  border-radius: var(--nabiz-radius-md);
+  background: var(--nabiz-danger-soft);
+  color: var(--nabiz-danger);
+}
+
+.app-footer {
+  border-top: 1px solid var(--nabiz-border-soft);
+  background: var(--nabiz-surface);
+}
+
+.app-footer p {
+  width: min(78rem, 100%);
+  margin-inline: auto;
+  padding: var(--nabiz-space-4) var(--nabiz-space-6);
+}
+
+@media (max-width: 1023px) {
+  .nav {
+    width: 264px;
+    box-shadow: var(--nabiz-shadow-2);
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  .topbar {
+    padding-inline: var(--nabiz-space-4);
+  }
+
+  .page {
+    padding: var(--nabiz-space-5) var(--nabiz-space-4) var(--nabiz-space-7);
+  }
+
+  .app-footer p {
+    padding-inline: var(--nabiz-space-4);
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar-subtitle {
+    display: none;
+  }
+
+  .status {
+    max-width: 9rem;
+  }
+
+  .status-text {
+    display: none;
+  }
 }

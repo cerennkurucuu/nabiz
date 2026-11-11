@@ -1,0 +1,101 @@
+:host {
+  display: block;
+}
+
+.card {
+  display: grid;
+  gap: var(--nabiz-space-3);
+  padding: var(--nabiz-space-5);
+  border: 1px solid var(--nabiz-border);
+  border-radius: var(--nabiz-radius-md);
+  background: var(--nabiz-surface);
+}
+
+.panel-grid {
+  display: grid;
+  gap: var(--nabiz-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  align-items: start;
+}
+
+.running {
+  border-color: var(--nabiz-primary-border);
+}
+
+.closed {
+  max-width: 40rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nabiz-space-2);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--nabiz-space-3);
+  margin: 0;
+}
+
+.stats div {
+  display: grid;
+  gap: var(--nabiz-space-1);
+  padding: var(--nabiz-space-3);
+  border: 1px solid var(--nabiz-border-soft);
+  border-radius: var(--nabiz-radius-sm);
+  background: var(--nabiz-surface-muted);
+}
+
+.stats dt {
+  font-size: 0.75rem;
+  color: var(--nabiz-ink-subtle);
+}
+
+.stats dd {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.steps {
+  margin: 0;
+  padding-left: var(--nabiz-space-5);
+  display: grid;
+  gap: var(--nabiz-space-2);
+  color: var(--nabiz-ink-muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.report-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nabiz-space-2);
+  margin-bottom: var(--nabiz-space-3);
+}
+
+.error {
+  padding: var(--nabiz-space-3) var(--nabiz-space-4);
+  border: 1px solid var(--nabiz-danger);
+  border-radius: var(--nabiz-radius-md);
+  background: var(--nabiz-danger-soft);
+  color: var(--nabiz-danger);
+}
+
+.notice {
+  padding: var(--nabiz-space-3) var(--nabiz-space-4);
+  border: 1px solid var(--nabiz-success);
+  border-radius: var(--nabiz-radius-md);
+  background: var(--nabiz-success-soft);
+  color: var(--nabiz-success);
+}
+
+.notice[data-tone='warning'] {
+  border-color: var(--nabiz-warning);
+  background: var(--nabiz-warning-soft);
+  color: var(--nabiz-warning);
+}
