@@ -377,3 +377,56 @@ yok ve Google isteği reddediyor. Düzeltme: anahtarın kısıtlaması "API'ler"
 - API yeniden başlatıldı; `http://localhost:4300` uygulaması açık bırakıldı.
 - Doğrulama betiğinin oluşturduğu 3 geçici oturum silindi; kullanıcının
   oturumu, 1 kullanıcı ve 17 tarama kaydı korundu.
+
+## 11 Kasım 2026 (öğleden sonra) — Beş analiz motoru, görsel kanıt ve GitHub yönetimi
+
+Bu tur iki işi birleştirdi: analiz motorlarının genişletilmesi ve projenin
+denetlenip commitlenmesi. Commit'ler Git'e gönderilmedi; push sahibine bırakıldı.
+
+### Yeni motorlar
+
+- **Teknik, UI/UX, erişilebilirlik, SEO ve PageSpeed** motorları birbirinden
+  bağımsız çalışır; her biri `queued|running|completed|partial|blocked|failed|
+unavailable` durumu üretir (`apps/api/src/modules/scanning/engine.ts`).
+- **UI/UX ve responsive**: U10 viewport dışı içerik, U11 kırpılan içerik, U12
+  dokunma hedefi, U13 yakın etkileşim öğeleri, U14 yazı boyutu, U15 erişilebilir
+  isim, U16 odak göstergesi, U17 kırılma noktası bozulması.
+- **Erişilebilirlik**: axe-core CSP'den bağımsız enjekte edilir (WCAG 2.2 AA
+  etiketleriyle); kontrast oranı `contrast.ts` içinde hesaplanır ve ön plan/arka
+  plan renkleri kanıtta yazılır.
+- **SEO**: S01–S14 (title, meta açıklama, H1, başlık hiyerarşisi, canonical,
+  robots, lang, viewport, Open Graph, Twitter Card, görsel alt metni, iç bağlantı,
+  yönlendirme, JSON-LD).
+- **Görsel kanıt**: ekran görüntüleri JSON'a gömülmez; `ScanArtifact` modeli ve
+  dosya deposu (boyut, adet ve saklama sınırı) ile yalnızca sahibine servis
+  edilir. Öğe bazlı görsel kanıt en fazla 4 adet üretir.
+- **PageSpeed**: hata sınıflandırması (kota, yetki, geçersiz anahtar, zaman aşımı,
+  ağ), TTFB, INP ve CrUX saha verisi laboratuvar verisinden ayrı tutulur.
+
+### Rapor arayüzü
+
+Sekiz bölüm (özet, teknik, UI/UX, erişilebilirlik, SEO, PageSpeed, görseller,
+öncelikli öneriler), motor durumları, filtreler, arama, yapışkan başlık, kademeli
+liste ve büyütülebilir görsel galerisi eklendi. Mavi Angular Material tasarımı
+korundu.
+
+### Doğrulama
+
+- `npm run typecheck`, `npm test` (169 backend + 30 frontend), `npm run lint`,
+  `npm run format:check`, `npm run build`, `npm run e2e` (49 kontrol),
+  `npm run prisma:validate`: hepsi sıfır çıkış koduyla başarılı.
+- Yedi fixture senaryosu (sağlıklı, düşük kontrast, eksik SEO, mobil taşma, küçük
+  dokunma hedefleri, erişilebilirlik hataları, teknik hatalar) gerçek Chromium
+  ile doğrulandı.
+- Gerçek tarama (example.com): 59 kontrol, 8 SEO bulgusu, 2 ekran görüntüsü;
+  SQLite'a yazıldı ve Angular raporunda göründü.
+
+### GitHub
+
+- 12 alt issue doğrulama yorumuyla kapatıldı, EPIC-02/03/04 kapatıldı.
+  EPIC-01 ve NABIZ-02, gerçek Google girişi doğrulanamadığı için açık bırakıldı.
+- EPIC 5 (#21) ve EPIC 6 (#22) açıldı; 16 + 12 alt issue bağlantılarla eklendi.
+  GitHub alt-issue yazma API'si kullanılamadığından ilişki gövde bağlantısıyla
+  kuruldu.
+- Üç commit: `bc16bd5` (motorlar), `f785342` (arayüz, CI, doküman),
+  `4e8e153` (README). Push yapılmadı.
