@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Kontrast test sayfası — düşük kontrastlı metin</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+      }
+      .low {
+        color: #b3b3b3;
+        background: #ffffff;
+      }
+      .lower {
+        color: #cccccc;
+        background: #f4f4f4;
+      }
+      .large {
+        font-size: 28px;
+        color: #d0d0d0;
+        background: #ffffff;
+      }
+      .good {
+        color: #1a1a1a;
+        background: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Kontrast testi</h1>
+    <p class="low">Bu metin 4.5:1 oranının altında kalır.</p>
+    <p class="lower">Bu metin de yetersiz kontrast sunar.</p>
+    <p class="large">Bu büyük metin 3:1 oranının altında kalır.</p>
+    <p class="good">Bu metin yeterli kontrasta sahiptir.</p>
+  </body>
+</html>

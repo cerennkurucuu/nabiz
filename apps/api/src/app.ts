@@ -6,8 +6,15 @@ import { errorHandler } from './middleware/error-handler.js';
 import type { ApiErrorResponse } from '../../../packages/contracts/api.js';
 import type { AuthService } from './modules/auth/auth.service.js';
 import { authRouter } from './modules/auth/auth.routes.js';
+import type { JobsService } from './modules/scanning/jobs.service.js';
+import type { ArtifactStore } from './modules/scanning/artifacts.js';
+import { jobsRouter } from './modules/scanning/jobs.routes.js';
 
-export function createApp(auth?: AuthService) {
+export function createApp(
+  auth?: AuthService,
+  jobs?: JobsService,
+  artifacts?: ArtifactStore,
+) {
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet());
@@ -20,6 +27,7 @@ export function createApp(auth?: AuthService) {
   app.use('/api/health', healthRouter);
   app.use('/health', healthRouter);
   if (auth) app.use('/api/auth', authRouter(auth));
+  if (auth && jobs) app.use('/api/scans', jobsRouter(auth, jobs, artifacts));
   app.use((_req, res) => {
     res.status(404).json({
       error: {

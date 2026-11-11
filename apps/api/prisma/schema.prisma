@@ -20,6 +20,7 @@ model User {
   name      String
   createdAt DateTime  @default(now())
   sessions  Session[]
+  scans     ScanJob[]
 }
 
 model Session {
@@ -39,4 +40,43 @@ model OAuthAttempt {
   expiresAt DateTime
 
   @@index([expiresAt])
+}
+
+model ScanJob {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  urls      String
+  status    String   @default("queued")
+  progress  Int      @default(0)
+  error     String?
+  result    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  artifacts ScanArtifact[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+// Ekran görüntüleri JSON içine gömülmez; dosya deposunda saklanır ve burada
+// yalnızca üst veri tutulur. Erişim tarama sahibine bağlıdır.
+model ScanArtifact {
+  id        String   @id
+  scanId    String
+  scan      ScanJob  @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  userId    String
+  kind      String
+  viewport  String
+  url       String
+  selector  String?
+  label     String?
+  fileName  String
+  bytes     Int
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
+
+  @@index([scanId])
+  @@index([userId, createdAt])
 }

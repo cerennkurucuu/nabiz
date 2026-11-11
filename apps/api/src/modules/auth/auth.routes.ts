@@ -2,9 +2,15 @@ import { Router, type RequestHandler } from 'express';
 import type {
   ApiResponse,
   AuthSession,
+  GoogleLoginChallenge,
 } from '../../../../../packages/contracts/api.js';
 import type { AuthService } from './auth.service.js';
-import { currentSession, requireAuth, requireCsrf } from './auth.middleware.js';
+import {
+  currentSession,
+  findOwnedRecord,
+  requireAuth,
+  requireCsrf,
+} from './auth.middleware.js';
 import {
   AuthError,
   clearTokenCookie,
@@ -13,7 +19,6 @@ import {
   setTokenCookie,
 } from './auth.security.js';
 
-// Bounded memory; do not trust arbitrary X-Forwarded-For headers for limiter identity.
 function loginLimiter(): RequestHandler {
   const entries = new Map<string, { count: number; until: number }>();
   return (req, res, next) => {
@@ -36,11 +41,30 @@ function loginLimiter(): RequestHandler {
   };
 }
 
+export function requireSameOrigin(origin: string): RequestHandler {
+  return (req, _res, next) => {
+    if (
+      req.get('Origin') !== origin ||
+      req.get('Sec-Fetch-Site') === 'cross-site' ||
+      !req.is('application/json')
+    ) {
+      throw new AuthError(
+        403,
+        'CSRF_REJECTED',
+        'İstek güvenlik kontrolünden geçemedi.',
+      );
+    }
+    next();
+  };
+}
+
 export function authRouter(auth: AuthService) {
   const router = Router();
   const secure = auth.config.secure;
   const sessionCookie = cookieName('session', secure);
   const stateCookie = cookieName('oauth', secure);
+  const sameOrigin = requireSameOrigin(auth.config.appOrigin);
+  const limiter = loginLimiter();
   router.use((_req, res, next) => {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Referrer-Policy', 'no-referrer');
@@ -58,37 +82,37 @@ export function authRouter(auth: AuthService) {
       : { configured: auth.configured, user: null, csrfToken: null };
     res.json({ data } satisfies ApiResponse<AuthSession>);
   });
-  router.get('/google', loginLimiter(), async (_req, res) => {
-    const attempt = await auth.begin();
-    setTokenCookie(res, stateCookie, attempt.state, secure, 5 * 60);
-    res.redirect(attempt.url);
+  router.post('/google/challenge', sameOrigin, limiter, async (_req, res) => {
+    const challenge = await auth.begin();
+    setTokenCookie(res, stateCookie, challenge.state, secure, 5 * 60);
+    res.json({ data: challenge } satisfies ApiResponse<GoogleLoginChallenge>);
   });
-  router.get('/google/callback', async (req, res) => {
-    const state =
-      typeof req.query['state'] === 'string' ? req.query['state'] : '';
-    const code = typeof req.query['code'] === 'string' ? req.query['code'] : '';
+  router.post('/google', sameOrigin, limiter, async (req, res) => {
+    const state = typeof req.body?.state === 'string' ? req.body.state : '';
+    const credential =
+      typeof req.body?.credential === 'string' ? req.body.credential : '';
     const browserState = readTokenCookie(req, stateCookie);
     clearTokenCookie(res, stateCookie, secure);
-    try {
-      const result = await auth.finish(
-        state,
-        browserState,
-        code,
-        readTokenCookie(req, sessionCookie),
-      );
-      setTokenCookie(
-        res,
-        sessionCookie,
-        result.token,
-        secure,
-        auth.config.sessionSeconds,
-      );
-      res.redirect(303, `${auth.config.appOrigin}/`);
-    } catch (error) {
-      if (!(error instanceof AuthError)) throw error;
-      // No provider token, authorization code or raw error is reflected in the URL.
-      res.redirect(303, `${auth.config.appOrigin}/?auth=failed`);
-    }
+    const result = await auth.finish(
+      state,
+      browserState,
+      credential,
+      readTokenCookie(req, sessionCookie),
+    );
+    setTokenCookie(
+      res,
+      sessionCookie,
+      result.token,
+      secure,
+      auth.config.sessionSeconds,
+    );
+    res.json({
+      data: {
+        configured: auth.configured,
+        user: result.user,
+        csrfToken: (await auth.session(result.token))!.csrfToken,
+      },
+    } satisfies ApiResponse<AuthSession>);
   });
   router.post(
     '/logout',
@@ -102,6 +126,15 @@ export function authRouter(auth: AuthService) {
   );
   router.get('/me', requireAuth(auth), (_req, res) => {
     res.json({ data: currentSession(res).user });
+  });
+  // Existing user profiles are the isolated resource example; no scan domain is added.
+  router.get('/profiles/:id', requireAuth(auth), async (req, res) => {
+    const profile = await findOwnedRecord(
+      currentSession(res),
+      String(req.params['id']),
+      ({ id, userId }) => auth.profile(id, userId),
+    );
+    res.json({ data: profile });
   });
   return router;
 }

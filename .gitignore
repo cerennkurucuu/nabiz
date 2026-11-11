@@ -12,3 +12,11 @@ coverage/
 *.log
 apps/api/generated/
 out-tsc/
+
+.auth-test-*/
+.cache/
+test-results/
+
+# Ekran görüntüsü deposu (kullanıcı verisi içerebilir, depoya girmez).
+apps/api/.data/
+apps/.data/

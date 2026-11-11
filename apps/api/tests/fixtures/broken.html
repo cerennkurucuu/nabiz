@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="tr">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Hatalı test sayfası</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    .wide {
+      width: 900px;
+      background: #eee;
+    }
+    .action {
+      padding: 12px;
+      background: #16735c;
+      color: white;
+    }
+    img {
+      width: 80px;
+      height: 60px;
+    }
+  </style>
+  <h1>Yedi kural örneği</h1>
+  <div class="wide">Mobil ekranda taşan alan</div>
+  <input id="missing-label" /><img alt="Bozuk görsel" src="/missing.png" /><a
+    href="/missing-link"
+    >Bozuk bağlantı</a
+  >
+  <div>
+    <button class="action">Kaydet</button><button class="action">Devam</button
+    ><button class="action" style="padding: 40px">Farklı</button>
+  </div>
+  <script>
+    throw new Error('Fixture: beklenen JavaScript hatası');
+  </script>
+</html>

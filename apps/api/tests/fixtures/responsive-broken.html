@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Responsive bozuk test sayfası — sabit genişlik</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+      }
+      .fixed {
+        width: 980px;
+        background: #eeeeee;
+        padding: 12px;
+      }
+      .fixed img {
+        width: 900px;
+        height: 40px;
+        background: #dddddd;
+      }
+      .clipped {
+        width: 320px;
+        height: 40px;
+        overflow: hidden;
+        background: #f0f0f0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Responsive bozuk düzen</h1>
+    <div class="fixed">
+      Bu blok 980 piksel genişliğindedir ve mobil görünümde taşar.
+      <div class="clipped">
+        Bu metin kırpılmış olarak görünür ve devamı gizlidir.
+      </div>
+    </div>
+  </body>
+</html>

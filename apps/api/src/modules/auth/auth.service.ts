@@ -25,7 +25,7 @@ export class AuthService {
   ) {}
 
   get configured() {
-    return Boolean(this.config.clientId && this.config.clientSecret);
+    return Boolean(this.config.clientId);
   }
 
   async begin() {
@@ -53,14 +53,15 @@ export class AuthService {
     });
     return {
       state,
-      url: this.provider.authorizationUrl(state, nonce, verifier),
+      nonce,
+      clientId: this.config.clientId,
     };
   }
 
   async finish(
     state: string,
     browserState: string | undefined,
-    code: string,
+    credential: string,
     oldToken?: string,
   ) {
     if (
@@ -68,8 +69,8 @@ export class AuthService {
       !browserState ||
       !equalTokens(state, browserState) ||
       !/^[A-Za-z0-9_-]{43}$/.test(state) ||
-      !code ||
-      code.length > 4096
+      !credential ||
+      credential.length > 16384
     ) {
       throw new AuthError(
         401,
@@ -91,11 +92,7 @@ export class AuthService {
         'INVALID_LOGIN',
         'Giriş isteği geçersiz veya süresi dolmuş.',
       );
-    const identity = await this.provider.exchange(
-      code,
-      attempt.verifier,
-      attempt.nonce,
-    );
+    const identity = await this.provider.verify(credential, attempt.nonce);
     const token = randomToken();
     const now = this.now();
     const user = await this.db.$transaction(async (tx) => {
@@ -149,6 +146,13 @@ export class AuthService {
   async logout(context: SessionContext) {
     await this.db.session.deleteMany({
       where: { tokenHash: context.tokenHash },
+    });
+  }
+
+  profile(id: string, ownerId: string) {
+    return this.db.user.findFirst({
+      where: { AND: [{ id }, { id: ownerId }] },
+      select: { id: true, email: true, name: true },
     });
   }
 }
